@@ -1,14 +1,30 @@
 # Engram
 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776ab.svg)](https://python.org)
+[![Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-cc785c.svg)](https://docs.anthropic.com/en/docs/claude-code)
+
 **Persistent memory infrastructure for Claude Code.**
 
-Git tracks what changed. Engram tracks what you *know*.
+*Git tracks what changed. Engram tracks what you know.*
+
+> *"In search of the engram." — Karl Lashley spent 30 years trying to find where memories live in the brain. He never found them. We're building them in silicon.*
 
 ---
 
-Engram is the memory system that runs underneath [Claude Code](https://docs.anthropic.com/en/docs/claude-code), giving it persistent recall across sessions. When you start a new conversation, Claude doesn't start from zero — Engram has already pre-loaded relevant context from past sessions. When you type a prompt, a hook silently searches multiple memory backends and injects relevant observations before Claude even sees your message.
+Engram gives [Claude Code](https://docs.anthropic.com/en/docs/claude-code) persistent recall across sessions. When you start a new conversation, Claude doesn't start from zero — Engram has already pre-loaded relevant context from past sessions. When you type a prompt, a hook silently searches multiple memory backends and injects relevant observations before Claude even sees your message.
 
 The result: an AI that remembers your projects, your preferences, your decisions, and the hard-won lessons from past debugging sessions.
+
+## The story
+
+This system was built iteratively over several months by a human and an AI working together daily. It started as a simple observation logger and evolved through real use into a multi-layer retrieval system with bio-inspired memory dynamics.
+
+Every design decision came from a real problem:
+- **Smart routing** exists because full-pipeline latency (1.2s) was too slow for casual prompts
+- **Bi-temporal validity** exists because superseded facts caused real debugging confusion
+- **Reconsolidation** exists because important memories kept falling out of search results
+- **The anticipatory loader** exists because ADHD means context needs to be handed to you, not searched for
 
 ## How it works
 
@@ -197,18 +213,6 @@ engram/
 ├── LICENSE                      # MIT
 └── README.md                    # You are here
 ```
-
-## How we built this
-
-This system was built iteratively over several months by a human and an AI working together daily. It started as a simple observation logger and evolved through real use into a multi-layer retrieval system with bio-inspired memory dynamics.
-
-Key design decisions were driven by real needs:
-- **Smart routing** exists because full-pipeline latency (1.2s) was too slow for casual prompts
-- **Bi-temporal validity** exists because superseded facts caused real debugging confusion
-- **Reconsolidation** exists because important memories kept falling out of search results
-- **The anticipatory loader** exists because ADHD means context needs to be handed to you, not searched for
-
-The name "Engram" comes from neuroscience — it's the hypothesized physical trace a memory leaves in the brain. Karl Lashley spent decades searching for them. We're building them in silicon.
 
 ## Dependencies
 
