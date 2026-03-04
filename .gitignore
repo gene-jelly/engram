@@ -1,0 +1,32 @@
+# Databases (your actual memories — never commit these)
+*.db
+*.db-shm
+*.db-wal
+*.db.backup*
+vector-db/
+
+# Secrets
+.env
+*.pem
+*.key
+credentials/
+
+# Caches
+chromadb_query_cache.json
+__pycache__/
+*.pyc
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Claude Code session data
+preloaded_ids.txt
+worker.pid
+worker-port
+observer-sessions/

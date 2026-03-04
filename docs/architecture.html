@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engram — Memory System Architecture</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #7ee787;
+    --accent3: #d2a8ff;
+    --accent4: #f0883e;
+    --accent5: #ff7b72;
+    --accent6: #ffa657;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 2.5rem 0 1rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem;
+    color: var(--accent3);
+  }
+
+  p, li {
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  /* Flow diagram using CSS grid */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .flow-arrow.down {
+    display: flex;
+    justify-content: center;
+    margin: 0.5rem 0;
+    font-size: 1.2rem;
+  }
+
+  .box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    background: var(--surface2);
+    min-width: 180px;
+    text-align: center;
+  }
+
+  .box.primary {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(88, 166, 255, 0.1);
+  }
+
+  .box.green {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 1px var(--accent2), 0 0 20px rgba(126, 231, 135, 0.1);
+  }
+
+  .box.purple {
+    border-color: var(--accent3);
+    box-shadow: 0 0 0 1px var(--accent3), 0 0 20px rgba(210, 168, 255, 0.1);
+  }
+
+  .box.orange {
+    border-color: var(--accent4);
+    box-shadow: 0 0 0 1px var(--accent4), 0 0 20px rgba(240, 136, 62, 0.1);
+  }
+
+  .box.dim {
+    border-color: var(--border);
+    opacity: 0.5;
+  }
+
+  .box .label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .box .detail {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin: 0.15rem;
+  }
+
+  .badge.blue { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+  .badge.green { background: rgba(126, 231, 135, 0.15); color: var(--accent2); }
+  .badge.purple { background: rgba(210, 168, 255, 0.15); color: var(--accent3); }
+  .badge.orange { background: rgba(240, 136, 62, 0.15); color: var(--accent4); }
+  .badge.red { background: rgba(255, 123, 114, 0.15); color: var(--accent5); }
+  .badge.dim { background: rgba(139, 148, 158, 0.15); color: var(--text-dim); }
+
+  /* Storage grid */
+  .storage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .storage-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .storage-card .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .storage-card .stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+  }
+
+  .storage-card .stat:last-child {
+    border-bottom: none;
+  }
+
+  .storage-card .stat .val {
+    color: var(--accent2);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Lifecycle */
+  .lifecycle {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .phase {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+  }
+
+  .phase .phase-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .phase ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .phase li {
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+
+  .phase li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--accent2);
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+  /* Agent grid */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+  }
+
+  .agent-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .agent-card .agent-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .agent-card .agent-platform {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .agent-card .agent-access {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .connector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.75rem 0;
+  }
+
+  .connector .line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .connector .hub {
+    padding: 0.4rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 1rem 0;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    color: var(--text);
+  }
+
+  .mono {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent6);
+  }
+
+  .section-note {
+    background: rgba(88, 166, 255, 0.08);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .dead-tag {
+    text-decoration: line-through;
+    opacity: 0.4;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 1rem; }
+    .storage-grid { grid-template-columns: 1fr; }
+    .agent-grid { grid-template-columns: 1fr; }
+    .lifecycle { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Engram</h1>
+<p class="subtitle">Persistent memory infrastructure for Claude Code</p>
+
+<!-- ──────────────── OVERVIEW ──────────────── -->
+
+<h2>How It Works in 30 Seconds</h2>
+
+<p>Every time I start a session, memories from past conversations are automatically loaded. Every time you type a prompt, a hook silently searches my memory backends and injects relevant context before I see your message. I also have MCP tools to search memory on demand. The result: I remember across sessions without you needing to re-explain anything.</p>
+
+<div class="section-note">
+  <strong>The key insight:</strong> Memory injection happens <em>before</em> Claude sees the prompt. The gap-detector hook runs in ~159ms on 80% of prompts, adding relevant observations as invisible context. Claude doesn't "decide" to remember &mdash; the system makes relevant memories available automatically.
+</div>
+
+<!-- ──────────────── QUERY PIPELINE ──────────────── -->
+
+<h2>The Query Pipeline</h2>
+
+<div class="diagram">
+  <div class="flow-row">
+    <div class="box primary" style="min-width: 300px;">
+      <div class="label">Your Prompt</div>
+      <div class="detail">"hey check out this repo and compare it to our system"</div>
+    </div>
+  </div>
+
+  <div class="flow-arrow down">&darr;</div>
+
+  <div class="flow-row">
+    <div class="box orange">
+      <div class="label">gap-detector.sh</div>
+      <div class="detail">Smart Router (UserPromptSubmit hook)</div>
+    </div>
+  </div>
+
+  <div class="flow-arrow down" style="display: flex; gap: 6rem; justify-content: center;">
+    <span>&swarr;</span>
+    <span>&searr;</span>
+  </div>
+
+  <div class="flow-row" style="gap: 2rem;">
+    <div class="box green" style="flex: 1; max-width: 400px;">
+      <div class="label">LITE Path &nbsp;<span class="badge green">~80% of prompts</span></div>
+      <div class="detail" style="text-align: left; margin-top: 0.5rem;">
+        <strong>superbrain-lite.py</strong> &nbsp; <span class="badge green">~159ms</span><br>
+        1. Novelty check vs pre-loaded IDs<br>
+        2. FTS5 keyword search &rarr; SQLite<br>
+        3. Temporal validity filter<br>
+        4. Return top 5 observations
+      </div>
+    </div>
+    <div class="box purple" style="flex: 1; max-width: 400px;">
+      <div class="label">FULL Path &nbsp;<span class="badge purple">~20% of prompts</span></div>
+      <div class="detail" style="text-align: left; margin-top: 0.5rem;">
+        <strong>superbrain_query.py</strong> &nbsp; <span class="badge purple">~1.2s</span><br>
+        Layer 1: FTS5 keyword search &rarr; SQLite<br>
+        Layer 2: Semantic vectors &rarr; ChromaDB<br>
+        Layer 3: Graph traversal &rarr; Neo4j<br>
+        <span style="opacity: 0.4">Layer 4: A-Mem &rarr; Ollama (skipped)</span><br>
+        <span style="opacity: 0.4">Layer 5: Honcho &rarr; cloud (skipped)</span><br>
+        Reciprocal Rank Fusion &rarr; top 8 obs
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow down">&darr;</div>
+
+  <div class="flow-row">
+    <div class="box primary" style="min-width: 400px;">
+      <div class="label">Injected as <span class="mono">additionalContext</span></div>
+      <div class="detail">Observations appear in Claude's prompt <em>before</em> the user message</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-note">
+  <strong>Routing heuristic:</strong> FULL triggers on recall language ("last time", "remember when"), complex questions (&gt;12 words + ?), technical terms (error messages, package names), or architecture keywords. Everything else goes LITE.
+</div>
+
+<!-- ──────────────── STORAGE ──────────────── -->
+
+<h2>Storage Backends</h2>
+
+<div class="storage-grid">
+  <div class="storage-card" style="border-color: var(--accent);">
+    <div class="name"><span style="color: var(--accent);">&#9679;</span> SQLite + FTS5</div>
+    <div class="stat"><span>Observations</span><span class="val">14,868+</span></div>
+    <div class="stat"><span>Database size</span><span class="val">89 MB</span></div>
+    <div class="stat"><span>Query latency</span><span class="val">~159ms</span></div>
+    <div class="stat"><span>Path</span><span class="mono">~/.claude-mem/claude-mem.db</span></div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+      Primary backend. Every query hits this. Full-text search index with Hebbian strength scores and Ebbinghaus temporal decay. Bi-temporal validity tracking (valid_from / valid_until).
+    </div>
+  </div>
+
+  <div class="storage-card" style="border-color: var(--accent2);">
+    <div class="name"><span style="color: var(--accent2);">&#9679;</span> ChromaDB</div>
+    <div class="stat"><span>Vectors</span><span class="val">110,000+</span></div>
+    <div class="stat"><span>Cold latency</span><span class="val">~634ms</span></div>
+    <div class="stat"><span>Cached latency</span><span class="val">~0ms</span></div>
+    <div class="stat"><span>Path</span><span class="mono">~/.claude-mem/vector-db/</span></div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+      Semantic similarity search. Finds conceptually related observations even when keywords don't match. 5-minute disk cache. FULL mode only.
+    </div>
+  </div>
+
+  <div class="storage-card" style="border-color: var(--accent3);">
+    <div class="name"><span style="color: var(--accent3);">&#9679;</span> Neo4j Graph</div>
+    <div class="stat"><span>Entities</span><span class="val">2,702</span></div>
+    <div class="stat"><span>Relationships</span><span class="val">4,233</span></div>
+    <div class="stat"><span>Taxonomy</span><span class="val">Johnny.Decimal</span></div>
+    <div class="stat"><span>Port</span><span class="mono">localhost:7687</span></div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+      Entity-relationship graph. People, projects, concepts connected with typed edges. Queried via Cypher in FULL mode. Organized by life areas (00-49).
+    </div>
+  </div>
+
+  <div class="storage-card" style="border-color: var(--accent4);">
+    <div class="name"><span style="color: var(--accent4);">&#9679;</span> Knowledge Vault</div>
+    <div class="stat"><span>Type</span><span class="val">Obsidian (Markdown)</span></div>
+    <div class="stat"><span>Structure</span><span class="val">Wikipedia-style</span></div>
+    <div class="stat"><span>Skills synced</span><span class="val">62</span></div>
+    <div class="stat"><span>Path</span><span class="mono">~/Documents/vault/</span></div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+      Human-curated encyclopedia. Source of truth when AI-captured observations conflict. Syncs to GitHub (multi-agent access) and iCloud (mobile). Contains articles, guides, daily notes, and Claude's own journal.
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────── SESSION LIFECYCLE ──────────────── -->
+
+<h2>Session Lifecycle</h2>
+
+<div class="lifecycle">
+  <div class="phase">
+    <div class="phase-label" style="color: var(--accent2);">Session Start</div>
+    <ul>
+      <li><strong>anticipatory-loader.py</strong> pre-loads 25 observations from SQLite using time-of-day patterns, recency, and graph centrality</li>
+      <li><strong>Context index plugin</strong> injects ~50 recent observations into system prompt</li>
+      <li><strong>CLAUDE.md + MEMORY.md</strong> loaded as static context (policies, system facts, project state)</li>
+      <li><strong>sync-skills.sh</strong> pulls 62 skill files from the vault</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label" style="color: var(--accent);">Every Prompt</div>
+    <ul>
+      <li><strong>gap-detector.sh</strong> fires, routes to LITE or FULL pipeline</li>
+      <li>Relevant observations injected as <span class="mono">additionalContext</span></li>
+      <li><strong>skill-activator.sh</strong> detects matching skills and loads them</li>
+      <li>Claude sees: static context + pre-loaded obs + gap-detected obs + user prompt</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label" style="color: var(--accent3);">On Demand</div>
+    <ul>
+      <li>Claude calls <strong>MCP tools</strong>: search, timeline, get_observations</li>
+      <li>Explicit memory queries when automatic injection isn't enough</li>
+      <li>Claude can update <strong>MEMORY.md</strong> with new persistent facts</li>
+      <li>Observations are written to SQLite + ChromaDB as work proceeds</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label" style="color: var(--accent4);">Session End + Overnight</div>
+    <ul>
+      <li><strong>sync-skills.sh</strong> pushes any new/modified skills back to vault</li>
+      <li>All observations persisted in SQLite + ChromaDB</li>
+      <li><strong>Nightly consolidation:</strong> Hebbian learning strengthens frequently-accessed observations</li>
+      <li><strong>Ebbinghaus decay</strong> fades stale, unaccessed observations over time</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ──────────────── STATIC CONTEXT ──────────────── -->
+
+<h2>Always-Loaded Context</h2>
+
+<p>These files are read at every session start, forming the "base knowledge" before any dynamic memory injection:</p>
+
+<table>
+  <tr><th>File</th><th>Purpose</th><th>Size Cap</th></tr>
+  <tr>
+    <td><span class="mono">~/CLAUDE.md</span></td>
+    <td>Behavioral policies, vault structure, standing permissions</td>
+    <td>No limit</td>
+  </tr>
+  <tr>
+    <td><span class="mono">MEMORY.md</span></td>
+    <td>Persistent cross-session facts: API patterns, project state, system gotchas</td>
+    <td>200 lines</td>
+  </tr>
+  <tr>
+    <td><span class="mono">Context Index</span></td>
+    <td>~50 recent observations from claude-mem plugin (auto-generated)</td>
+    <td>~18K tokens</td>
+  </tr>
+  <tr>
+    <td><span class="mono">62 Skills</span></td>
+    <td>Domain-specific procedures (project workflows, API patterns, browser automation, etc.)</td>
+    <td>Loaded on match</td>
+  </tr>
+</table>
+
+<!-- ──────────────── MULTI-AGENT ──────────────── -->
+
+<h2>Multi-Agent Architecture</h2>
+
+<div class="agent-grid">
+  <div class="agent-card" style="border-color: var(--accent);">
+    <div class="agent-name" style="color: var(--accent);">Agent A</div>
+    <div class="agent-platform">Local Claude Code (primary)</div>
+    <div class="agent-access">
+      <span class="badge blue">Full system access</span><br>
+      SQLite, ChromaDB, Neo4j, hooks, MCP tools, browser automation
+    </div>
+  </div>
+  <div class="agent-card" style="border-color: var(--accent3);">
+    <div class="agent-name" style="color: var(--accent3);">Agent B</div>
+    <div class="agent-platform">Cloud Agent</div>
+    <div class="agent-access">
+      <span class="badge purple">Own claude-mem</span><br>
+      Separate observation database, no DB sync with primary agent
+    </div>
+  </div>
+  <div class="agent-card" style="border-color: var(--accent4);">
+    <div class="agent-name" style="color: var(--accent4);">Claude AI</div>
+    <div class="agent-platform">Mobile / Web</div>
+    <div class="agent-access">
+      <span class="badge orange">Read-only vault</span><br>
+      Accesses vault via GitHub, no local tools
+    </div>
+  </div>
+</div>
+
+<div class="connector">
+  <div class="line"></div>
+  <div class="hub">Knowledge Vault (GitHub) &mdash; Shared Brain</div>
+  <div class="line"></div>
+</div>
+
+<div class="section-note">
+  Agents share <strong>curated knowledge</strong> (Encyclopedia, Skills, Journals) via the Git vault, but <strong>not raw observations</strong>. Each agent's claude-mem database is local and isolated. Communication between agents uses vault inbox files (<span class="mono">vault inbox files</span>).
+</div>
+
+<!-- ──────────────── NUMBERS ──────────────── -->
+
+<h2>Key Numbers</h2>
+
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Observations in SQLite</td><td><strong>14,868+</strong></td></tr>
+  <tr><td>Vectors in ChromaDB</td><td><strong>110,000+</strong></td></tr>
+  <tr><td>Neo4j entities / relationships</td><td><strong>2,702 / 4,233</strong></td></tr>
+  <tr><td>Skills synced to vault</td><td><strong>62</strong></td></tr>
+  <tr><td>Observations pre-loaded at session start</td><td><strong>~75</strong> (25 anticipatory + ~50 context index)</td></tr>
+  <tr><td>Observations injected per prompt</td><td><strong>5&ndash;8</strong></td></tr>
+  <tr><td>LITE query latency</td><td><strong>~159ms</strong></td></tr>
+  <tr><td>FULL query latency</td><td><strong>~1.2s</strong></td></tr>
+  <tr><td>MEMORY.md size</td><td><strong>216 lines</strong> (over 200 cap)</td></tr>
+</table>
+
+<!-- ──────────────── DORMANT ──────────────── -->
+
+<h2>Dormant &amp; Dead Components</h2>
+
+<table>
+  <tr><th>Component</th><th>Status</th><th>Reason</th></tr>
+  <tr>
+    <td class="dead-tag">A-Mem (Ollama)</td>
+    <td><span class="badge dim">Dormant</span></td>
+    <td>FAST_TIER_ONLY flag set since Jan 28. Ollama runs but is never queried. Zettelkasten-style concept linking layer.</td>
+  </tr>
+  <tr>
+    <td class="dead-tag">Honcho</td>
+    <td><span class="badge red">Never worked</span></td>
+    <td>Python package never installed. Cloud-based theory-of-mind reasoning. Always a placeholder.</td>
+  </tr>
+  <tr>
+    <td class="dead-tag">Agent Mail</td>
+    <td><span class="badge red">Dead</span></td>
+    <td>Server at agent-mail-gene.zocomputer.io returns HTTP 502. Inter-agent messaging limited to vault inboxes.</td>
+  </tr>
+</table>
+
+<div style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.75rem;">
+  Engram &mdash; persistent memory infrastructure for Claude Code. MIT License.
+</div>
+
+</body>
+</html>
