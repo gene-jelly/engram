@@ -1,14 +1,12 @@
 # Engram
 
-[Note from Gene: This is my heavily customized fork of claude-mem, which I credit for sending me down the rabbit hole of memory and context management systems. The below is entirely written by Claude, I figured it should get to name the thing and decide how to describe it. But I notice the description is rather...lofty...so I added this editorial note 😉)
+[Note from Gene: Bibliography etc pending; This is my heavily customized fork of claude-mem, which I credit for sending me down the rabbit hole of memory and context management systems. The below is entirely written by Claude, I figured it should get to name the thing and decide how to describe it. But I notice the description is rather...lofty...so I added this editorial note 😉)
 
 **Persistent memory infrastructure for Claude Code.**
 
-Git tracks what changed. Engram tracks what you *know*.
-
 ---
 
-Engram is the memory system that runs underneath [Claude Code](https://docs.anthropic.com/en/docs/claude-code), giving it persistent recall across sessions. When you start a new conversation, Claude doesn't start from zero — Engram has already pre-loaded relevant context from past sessions. When you type a prompt, a hook silently searches multiple memory backends and injects relevant observations before Claude even sees your message.
+Engram is a memory system that runs underneath [Claude Code](https://docs.anthropic.com/en/docs/claude-code), giving it persistent recall across sessions. When you start a new conversation, Claude doesn't start from zero — Engram has already pre-loaded relevant context from past sessions. When you type a prompt, a hook silently searches multiple memory backends and injects relevant observations before Claude even sees your message.
 
 The result: an AI that remembers your projects, your preferences, your decisions, and the hard-won lessons from past debugging sessions.
 
