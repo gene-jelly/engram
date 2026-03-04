@@ -200,13 +200,13 @@ engram/
 
 ## How we built this
 
-This system was built iteratively over several months by a human (Tim, who has ADHD and runs CNBC operations at Carnegie Mellon) and an AI (Claude, operating as "BrownBear" on Tim's local machine). It started as a simple observation logger and evolved through daily use into a multi-layer retrieval system with bio-inspired memory dynamics.
+This system was built iteratively over several months by a human and an AI working together daily. It started as a simple observation logger and evolved through real use into a multi-layer retrieval system with bio-inspired memory dynamics.
 
 Key design decisions were driven by real needs:
 - **Smart routing** exists because full-pipeline latency (1.2s) was too slow for casual prompts
 - **Bi-temporal validity** exists because superseded facts caused real debugging confusion
 - **Reconsolidation** exists because important memories kept falling out of search results
-- **The anticipatory loader** exists because Tim's ADHD means he needs context handed to him, not searched for
+- **The anticipatory loader** exists because ADHD means context needs to be handed to you, not searched for
 
 The name "Engram" comes from neuroscience — it's the hypothesized physical trace a memory leaves in the brain. Karl Lashley spent decades searching for them. We're building them in silicon.
 
@@ -223,4 +223,4 @@ The name "Engram" comes from neuroscience — it's the hypothesized physical tra
 
 MIT. See [LICENSE](LICENSE).
 
-Built by Tim Wainwright and Claude (BrownBear) at Carnegie Mellon University.
+Built by [Gene Jelly](https://github.com/gene-jelly) and Claude.
