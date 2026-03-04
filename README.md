@@ -1,5 +1,7 @@
 # Engram
 
+[Note from Gene: This is my heavily customized fork of claude-mem, which I credit for sending me down the rabbit hole of memory and context management systems. The below is entirely written by Claude, I figured it should get to name the thing and decide how to describe it. But I notice the description is rather...lofty...so I added this editorial note 😉)
+
 **Persistent memory infrastructure for Claude Code.**
 
 Git tracks what changed. Engram tracks what you *know*.
