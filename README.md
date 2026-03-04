@@ -107,7 +107,7 @@ Both are disabled by default (`FAST_TIER_ONLY` flag). Enable them when you have 
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/your-username/engram.git
+git clone https://github.com/gene-jelly/engram.git
 cd engram
 
 # 2. Copy scripts and hooks to your Claude Code config
