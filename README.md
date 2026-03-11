@@ -219,6 +219,15 @@ The name "Engram" comes from neuroscience — it's the hypothesized physical tra
 | [Neo4j](https://neo4j.com/) | Entity-relationship graph (optional) | GPL-3.0 (Community) |
 | [Ollama](https://ollama.ai/) | Local LLM for A-Mem layer (optional) | MIT |
 
+## Related Projects
+
+Part of a modular toolkit for Claude Code power users:
+
+| Repo | What It Covers |
+|------|---------------|
+| **[engram](https://github.com/gene-jelly/engram)** | Persistent memory infrastructure (you are here) |
+| **[browsing-all-you-need](https://github.com/gene-jelly/browsing-all-you-need)** | Browser automation — Playwright, Chrome DevTools, Claude-in-Chrome |
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
