@@ -29,7 +29,7 @@ BEST_COMMAND=""
 while IFS= read -r skill_json; do
   name=$(echo "$skill_json" | jq -r '.name')
   command=$(echo "$skill_json" | jq -r '.command // empty')
-  triggers=$(echo "$skill_json" | jq -r '.triggers[]' 2>/dev/null)
+  triggers=$(echo "$skill_json" | jq -r '.triggers[]' 2>>"${HOME}/.claude-mem/logs/skill-activator.log")
 
   score=0
 

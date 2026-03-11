@@ -21,6 +21,16 @@ fi
 # Read tool input from stdin
 input=$(cat)
 
+# Fail closed: if input is empty or python3 missing, block
+if [[ -z "$input" ]]; then
+  echo "BLOCKED: email-send-guard received empty input — failing closed." >&2
+  exit 2
+fi
+if ! command -v python3 &>/dev/null; then
+  echo "BLOCKED: email-send-guard requires python3 — failing closed." >&2
+  exit 2
+fi
+
 # Check if this is a mail send operation
 operation=$(echo "$input" | python3 -c "
 import sys, json
@@ -28,9 +38,16 @@ try:
     data = json.load(sys.stdin)
     tool_input = data.get('tool_input', {})
     print(tool_input.get('operation', ''))
-except:
-    print('')
-" 2>/dev/null)
+except (json.JSONDecodeError, KeyError, TypeError) as e:
+    print('PARSE_ERROR', file=sys.stderr)
+    sys.exit(1)
+" 2>&1)
+
+# If python parse failed, fail closed
+if [[ $? -ne 0 ]]; then
+  echo "BLOCKED: email-send-guard could not parse input — failing closed." >&2
+  exit 2
+fi
 
 if [ "$operation" = "send" ]; then
     echo "BLOCKED: Email sending via MCP is disabled for safety." >&2

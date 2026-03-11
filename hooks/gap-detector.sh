@@ -17,6 +17,12 @@ if [[ -f "${HOME}/.claude-mem/GAP_DETECTOR_OFF" ]]; then
   exit 0
 fi
 
+# ── Ensure jq is available ──
+if ! command -v jq &>/dev/null; then
+  echo "gap-detector: jq not found, skipping" >>"${HOME}/.claude-mem/logs/gap-detector.log" 2>&1
+  exit 0
+fi
+
 # ── Read prompt from stdin ──
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
@@ -59,9 +65,9 @@ fi
 
 # ── Route to backend ──
 if [[ "$USE_FULL" == "true" ]]; then
-  SEARCH_TEXT=$(python3 "${HOME}/.claude/scripts/superbrain_query.py" "$PROMPT" 2>/dev/null)
+  SEARCH_TEXT=$(python3 "${HOME}/.claude/scripts/superbrain.py" "$PROMPT" 2>>"${HOME}/.claude-mem/logs/gap-detector.log")
 else
-  SEARCH_TEXT=$(python3 "${HOME}/.claude/scripts/superbrain-lite.py" "$PROMPT" 2>/dev/null)
+  SEARCH_TEXT=$(python3 "${HOME}/.claude/scripts/superbrain-lite.py" "$PROMPT" 2>>"${HOME}/.claude-mem/logs/gap-detector.log")
 fi
 
 if [[ -z "$SEARCH_TEXT" ]]; then

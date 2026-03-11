@@ -39,23 +39,28 @@ do_pull() {
     return 0
   fi
 
+  LOG_FILE="${HOME}/.claude-mem/logs/sync-skills.log"
+  mkdir -p "$(dirname "$LOG_FILE")"
+
   # Git pull vault first (fast-forward only)
   if [ -d "$VAULT_DIR/.git" ]; then
-    git -C "$VAULT_DIR" pull --ff-only --quiet 2>/dev/null || true
+    git -C "$VAULT_DIR" pull --ff-only --quiet 2>>"$LOG_FILE" || true
   fi
 
   # rsync vault -> local (only newer files, preserve structure)
   rsync -a --update --exclude='SYNC.md' --exclude='.gitkeep' \
-    "$VAULT_SKILLS/" "$LOCAL_SKILLS/" 2>/dev/null || true
+    "$VAULT_SKILLS/" "$LOCAL_SKILLS/" 2>>"$LOG_FILE" || true
 }
 
 do_push() {
   # Push: local -> vault (share this agent's changes)
   mkdir -p "$VAULT_SKILLS"
 
+  LOG_FILE="${HOME}/.claude-mem/logs/sync-skills.log"
+
   # rsync local -> vault (only newer files, preserve structure)
   rsync -a --update --exclude='.DS_Store' --exclude='_archive/' \
-    "$LOCAL_SKILLS/" "$VAULT_SKILLS/" 2>/dev/null || true
+    "$LOCAL_SKILLS/" "$VAULT_SKILLS/" 2>>"$LOG_FILE" || true
 
   # Generate manifest
   generate_manifest
@@ -63,11 +68,11 @@ do_push() {
   # Git commit + push if there are changes
   if [ -d "$VAULT_DIR/.git" ]; then
     cd "$VAULT_DIR"
-    if ! git diff --quiet -- Skills/ 2>/dev/null || \
-       [ -n "$(git ls-files --others --exclude-standard Skills/ 2>/dev/null)" ]; then
-      git add Skills/ 2>/dev/null || true
-      git commit -m "Sync skills from $(hostname -s)" --quiet 2>/dev/null || true
-      git push --quiet 2>/dev/null || true
+    if ! git diff --quiet -- Skills/ 2>>"$LOG_FILE" || \
+       [ -n "$(git ls-files --others --exclude-standard Skills/ 2>>"$LOG_FILE")" ]; then
+      git add Skills/ 2>>"$LOG_FILE" || true
+      git commit -m "Sync skills from $(hostname -s)" --quiet 2>>"$LOG_FILE" || true
+      git push --quiet 2>>"$LOG_FILE" || true
     fi
   fi
 }

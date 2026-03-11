@@ -74,7 +74,8 @@ def load_preloaded_ids() -> Set[str]:
                 if line.isdigit():
                     ids.add(line)
             return ids
-    except Exception:
+    except OSError as e:
+        logger.warning(f"Could not read preloaded IDs: {e}")
         return set()
 
 
@@ -125,7 +126,7 @@ def temporal_filter(obs_ids: List[str]) -> List[str]:
         conn.close()
         return [oid for oid in obs_ids if oid in valid]
     except Exception as e:
-        logger.warning(f"Temporal filter failed: {e}")
+        logger.warning(f"Temporal filter failed, returning unfiltered (fail-open): {e}")
         return obs_ids
 
 

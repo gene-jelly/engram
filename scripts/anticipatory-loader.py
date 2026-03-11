@@ -191,8 +191,8 @@ def save_preloaded_ids(observations, entities):
             if entity_ids:
                 f.write('\n# entities\n')
                 f.write('\n'.join(entity_ids))
-    except Exception:
-        pass
+    except OSError as e:
+        print(f"Warning: Could not save preloaded IDs: {e}", file=sys.stderr)
 
 
 def format_preload_context(observations, summaries, entities):
@@ -268,7 +268,15 @@ def main():
     json_mode = '--json' in args
     stats_mode = '--stats' in args
 
-    conn = sqlite3.connect(str(DB_PATH))
+    if not DB_PATH.exists():
+        print("No claude-mem database found — skipping anticipatory loading.", file=sys.stderr)
+        return
+
+    try:
+        conn = sqlite3.connect(str(DB_PATH), timeout=5)
+    except sqlite3.Error as e:
+        print(f"Cannot open claude-mem database: {e}", file=sys.stderr)
+        return
 
     if stats_mode:
         print_stats(conn)

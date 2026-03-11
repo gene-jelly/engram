@@ -77,7 +77,7 @@ Open [`docs/architecture.html`](docs/architecture.html) in your browser for the 
 | **A-Mem** | Zettelkasten-style conceptual linking via Ollama | Local Ollama + A-Mem |
 | **Honcho** | Strategic/theory-of-mind reasoning | Honcho API key |
 
-Both are disabled by default (`FAST_TIER_ONLY` flag). Enable them when you have the infrastructure.
+Both require extra infrastructure. Set `FAST_TIER_ONLY` to skip them (runs core tiers only — FTS5, ChromaDB, Neo4j).
 
 ### Session lifecycle
 
@@ -110,7 +110,8 @@ Both are disabled by default (`FAST_TIER_ONLY` flag). Enable them when you have 
 git clone https://github.com/your-username/engram.git
 cd engram
 
-# 2. Copy scripts and hooks to your Claude Code config
+# 2. Create target directories and copy scripts/hooks
+mkdir -p ~/.claude/scripts ~/.claude/hooks ~/.claude-mem/logs
 cp scripts/*.py ~/.claude/scripts/
 cp scripts/*.sh ~/.claude/scripts/
 cp hooks/*.sh ~/.claude/hooks/

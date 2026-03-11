@@ -230,8 +230,10 @@ class ChromaDBAdapter:
                 self.client = chromadb.PersistentClient(path=str(self.CHROMA_PATH))
                 self.collection = self.client.get_collection(name=self.COLLECTION_NAME)
                 self.available = True
-        except Exception:
-            pass
+        except ImportError:
+            logger.info("ChromaDB not installed — vector search unavailable")
+        except Exception as e:
+            logger.warning(f"ChromaDB init failed: {e}")
 
     def _get_active_ids(self, candidate_ids: List[int]) -> set:
         if not candidate_ids:
@@ -245,8 +247,9 @@ class ChromaDBAdapter:
                     candidate_ids
                 )
                 return {row[0] for row in cursor.fetchall()}
-        except Exception:
-            return set()
+        except Exception as e:
+            logger.warning(f"_get_active_ids failed, returning all candidates as fallback: {e}")
+            return set(candidate_ids)
 
     async def query(self, query: str, k: int = 5) -> QueryResult:
         start = time.time()
@@ -362,10 +365,14 @@ class EntityGraphAdapter:
 
     def __init__(self):
         self.neo4j_url = os.environ.get("NEO4J_URL", "http://localhost:7474/db/neo4j/tx/commit")
+        # IMPORTANT: Change default Neo4j credentials in production.
+        # Set NEO4J_USER and NEO4J_PASSWORD environment variables in ~/.env
         self.auth = (
             os.environ.get("NEO4J_USER", "neo4j"),
             os.environ.get("NEO4J_PASSWORD", "neo4j")
         )
+        if self.auth[1] == "neo4j" and not os.environ.get("NEO4J_PASSWORD"):
+            logger.info("Neo4j using default credentials — set NEO4J_PASSWORD in ~/.env for production")
 
     async def query(self, query: str, k: int = 5) -> QueryResult:
         start = time.time()
@@ -579,13 +586,13 @@ def reconsolidate(obs_ids: List[int]):
         return
     try:
         now_ms = int(time.time() * 1000)
-        id_list = ','.join(str(oid) for oid in obs_ids)
+        placeholders = ','.join('?' * len(obs_ids))
         conn = sqlite3.connect(str(DB_PATH), timeout=5)
         conn.execute("PRAGMA busy_timeout = 3000")
         conn.execute("BEGIN EXCLUSIVE")
         conn.execute(f"""
             UPDATE observations
-            SET last_accessed_epoch = {now_ms},
+            SET last_accessed_epoch = ?,
                 confidence = MIN(
                   COALESCE(confidence, 0.7) +
                   CASE COALESCE(certainty_level, 'inductive')
@@ -596,9 +603,9 @@ def reconsolidate(obs_ids: List[int]):
                   END,
                   1.0
                 )
-            WHERE id IN ({id_list})
+            WHERE id IN ({placeholders})
             AND superseded_by IS NULL
-        """)
+        """, [now_ms] + [int(oid) for oid in obs_ids])
         conn.execute("COMMIT")
         conn.close()
         logger.info(f"RECONSOLIDATION: Updated access time + confidence for {len(obs_ids)} observations")
