@@ -227,6 +227,7 @@ Part of a modular toolkit for Claude Code power users:
 |------|---------------|
 | **[engram](https://github.com/gene-jelly/engram)** | Persistent memory infrastructure (you are here) |
 | **[browsing-all-you-need](https://github.com/gene-jelly/browsing-all-you-need)** | Browser automation — Playwright, Chrome DevTools, Claude-in-Chrome |
+| **[credentials-all-you-need](https://github.com/gene-jelly/credentials-all-you-need)** | Secrets and credential management |
 
 ## License
 
