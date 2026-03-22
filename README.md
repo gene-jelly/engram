@@ -138,10 +138,10 @@ cp -r vault-example/ ~/Documents/vault/
 curl -s http://127.0.0.1:37777/api/health
 
 # Test the lite pipeline
-python3 ~/.claude/scripts/superbrain-lite.py "test query"
+python3 ~/.claude/scripts/superbrain_query.py "test query" --lite
 
 # Test the full pipeline (if Neo4j/ChromaDB are configured)
-python3 ~/.claude/scripts/superbrain.py "test query" --json
+python3 ~/.claude/scripts/superbrain_query.py "test query" --json
 ```
 
 ## The vault
@@ -176,13 +176,12 @@ Each agent has its own `claude-mem` database (observations don't sync between ag
 engram/
 ├── hooks/
 │   ├── gap-detector.sh          # Smart routing: LITE vs FULL per prompt
-│   ├── skill-activator.sh       # Matches prompts to relevant skills
+│   ├── chrome-db-guard.sh       # Safety: blocks Chrome DB access (CrowdStrike)
 │   └── email-send-guard.sh      # Safety: blocks accidental email sends
 ├── scripts/
-│   ├── superbrain.py            # Full multi-layer query pipeline (886 lines)
-│   ├── superbrain-lite.py       # Fast FTS5-only path (269 lines)
-│   ├── anticipatory-loader.py   # Session-start context pre-loading (301 lines)
-│   └── sync-skills.sh           # Vault ↔ local skill sync (159 lines)
+│   ├── superbrain_query.py      # Unified multi-layer query pipeline (LITE + FULL modes)
+│   ├── anticipatory-loader.py   # Session-start context pre-loading
+│   └── sync-skills.sh           # Vault ↔ local skill sync
 ├── config/
 │   ├── .env.example             # Environment variable template
 │   └── settings-example.json    # Claude Code hook configuration
