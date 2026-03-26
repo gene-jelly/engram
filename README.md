@@ -237,9 +237,14 @@ Part of a modular toolkit for Claude Code power users:
 
 After 4 days without it, Claude noticeably "forgot" things between sessions. So I ran a design council (three AI personas simulating Simon Willison, Linus Lee, and Dan Shipper) to evaluate the options. Their unanimous recommendation: **keep the database, kill the hook, make retrieval a pull tool.**
 
-**Current architecture (Path C):**
-- **Tier 1 — Static preamble:** A dense MEMORY.md file that Claude always has. Carries personality, preferences, project context. Prompt-cache friendly because it doesn't change between turns.
-- **Tier 2 — On-demand retrieval:** The claude-mem SQLite database (11K+ observations) remains available as an MCP tool Claude can call when it needs to recall something specific. No hook, no automatic injection.
+**Current architecture (Path C, refined):**
+- **Tier 1 — Static preamble:** A dense MEMORY.md file (~200 lines) that Claude always has. Carries personality, preferences, project context. Prompt-cache friendly because it doesn't change between turns.
+- **Tier 2 — Topic files:** 35+ markdown files (meridian-codebase.md, cnbc-ops.md, etc.) read on demand when Claude needs deeper context. Zero startup cost.
+- **Tier 3 — claude-mem SQLite:** 11K+ observations searchable on demand via MCP tool call. The claude-mem plugin's PostToolUse hook still records new observations (growing the corpus), but the gap-detector's per-prompt context injection is permanently dead.
+
+**Additional components:**
+- **Mindfulness hook:** A contemplative `UserPromptSubmit` hook that gently nudges Claude to notice if anything in the conversation is worth recording in memory or journal. Static text — no cache busting. Inspired by Bonhoeffer and Rowan Williams.
+- **Obsidian symlink:** Memory files are symlinked into an Obsidian vault, making them visible and editable by the human collaborator. The memory isn't "the AI's private state" — it's a shared document both parties read and write.
 
 The gap-detector's smart routing (lite vs full, FTS5 vs multi-backend fusion) was clever engineering but solved the wrong problem. Most prompts are continuations that don't need injected context. The few that do benefit from recall are better served by letting the model decide when to search.
 
@@ -248,6 +253,8 @@ The gap-detector's smart routing (lite vs full, FTS5 vs multi-backend fusion) wa
 2. Personality continuity comes from a dense static preamble, not dynamic retrieval
 3. 11K observations are valuable as a searchable corpus, not as a firehose
 4. The maintenance overhead of custom hooks compounds — every Claude Code update is a potential breakage point
+5. AI memory should be transparent and editable — shared documents, not opaque databases
+6. A "mindfulness" nudge (write-nothing hook that invites reflection) is more effective than automated capture
 
 This repo remains as documentation of the push-model experiment. The architecture diagrams and bio-inspired memory dynamics (Hebbian learning, Ebbinghaus decay, reconsolidation) are still interesting ideas — they just belong in a pull-model implementation, not a hook.
 
