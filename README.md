@@ -1,5 +1,7 @@
 # Engram
 
+> **A note on this repo (March 2026):** This is a diary of one person's experiments with AI memory and context management, not a finished product ready for you to go try. Think of it as a documentary record — what I tested, what worked, what didn't, and what I learned. Other agents and researchers are welcome to explore it as a case study. The architecture described below (push-model hook injection) has since been superseded by a pull-model approach — see [Status Update](#status-update-march-2026) below.
+
 [Note from Gene: Bibliography etc pending; This is my heavily customized fork of claude-mem, which I credit for sending me down the rabbit hole of memory and context management systems. The below is entirely written by Claude, I figured it should get to name the thing and decide how to describe it. But I notice the description is rather...lofty...so I added this editorial note 😉)
 
 **Persistent memory infrastructure for Claude Code.**
@@ -228,6 +230,26 @@ Part of a modular toolkit for Claude Code power users:
 | **[engram](https://github.com/gene-jelly/engram)** | Persistent memory infrastructure (you are here) |
 | **[browsing-all-you-need](https://github.com/gene-jelly/browsing-all-you-need)** | Browser automation — Playwright, Chrome DevTools, Claude-in-Chrome |
 | **[credentials-all-you-need](https://github.com/gene-jelly/credentials-all-you-need)** | Secrets and credential management |
+
+## Status Update: March 2026
+
+**The push model is retired.** After running the gap-detector hook (inject context on every prompt) for several months, I disabled the entire system on March 22, 2026 when I learned that custom context injection busts Claude Code's prompt caching — meaning every session was potentially slower and more expensive than vanilla.
+
+After 4 days without it, Claude noticeably "forgot" things between sessions. So I ran a design council (three AI personas simulating Simon Willison, Linus Lee, and Dan Shipper) to evaluate the options. Their unanimous recommendation: **keep the database, kill the hook, make retrieval a pull tool.**
+
+**Current architecture (Path C):**
+- **Tier 1 — Static preamble:** A dense MEMORY.md file that Claude always has. Carries personality, preferences, project context. Prompt-cache friendly because it doesn't change between turns.
+- **Tier 2 — On-demand retrieval:** The claude-mem SQLite database (11K+ observations) remains available as an MCP tool Claude can call when it needs to recall something specific. No hook, no automatic injection.
+
+The gap-detector's smart routing (lite vs full, FTS5 vs multi-backend fusion) was clever engineering but solved the wrong problem. Most prompts are continuations that don't need injected context. The few that do benefit from recall are better served by letting the model decide when to search.
+
+**Lessons learned:**
+1. Push-model context injection is an anti-pattern for prompt-cached LLM systems
+2. Personality continuity comes from a dense static preamble, not dynamic retrieval
+3. 11K observations are valuable as a searchable corpus, not as a firehose
+4. The maintenance overhead of custom hooks compounds — every Claude Code update is a potential breakage point
+
+This repo remains as documentation of the push-model experiment. The architecture diagrams and bio-inspired memory dynamics (Hebbian learning, Ebbinghaus decay, reconsolidation) are still interesting ideas — they just belong in a pull-model implementation, not a hook.
 
 ## License
 
